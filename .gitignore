@@ -1,0 +1,14 @@
+# secrets and local state
+.env
+*.key
+*.pem
+credentials*.json
+
+# n8n local exports
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# os
+.DS_Store
+Thumbs.db

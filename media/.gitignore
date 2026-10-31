@@ -1,0 +1,7 @@
+# media/
+demo.mp4             — 60–90s screen recording of the test
+workflow-canvas.png  — canvas-only screenshot (no browser chrome, no secrets)
+
+# keep large raw recordings out of git
+*.mkv
+*.mov

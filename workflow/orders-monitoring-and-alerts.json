@@ -1,0 +1,366 @@
+{
+  "name": "Orders Monitoring and Alerts",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -656,
+        -80
+      ],
+      "id": "46032369-4cfd-4be1-8951-cdc5ff01af22",
+      "name": "Webhook",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=Hey New order was submitted, Order Detials\nName : {{ $('Extracting the data').item.json.query['Name '] }}\nAddress : {{ $('Extracting the data').item.json.query.Address }}\nOrder : {{ $('Extracting the data').item.json.query.Order }}\nOrder_ID : {{ $('Extracting the data').item.json.query.Order_ID }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        -176
+      ],
+      "id": "e55a91f2-2ce6-4e4a-a4cd-f11e6eda2fb9",
+      "name": "Send Order Details to Telegram",
+      "webhookId": "62554211-307a-4563-9ec3-33e9968bbd9a",
+      "retryOnFail": false,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Extracting the data').item.json.query['Name '] }}",
+            "Address": "={{ $('Extracting the data').item.json.query.Address }}",
+            "Order": "={{ $('Extracting the data').item.json.query.Order }}",
+            "ID": "={{ $('Extracting the data').item.json.query.Order_ID }}"
+          },
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Order",
+              "displayName": "Order",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        16
+      ],
+      "id": "9bf0e21f-bb3e-4f16-a9c6-c2a2bde07701",
+      "name": "Log Order Details to Sheets",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "id"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "ID",
+              "lookupValue": "={{ $json.query.Order_ID }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -208,
+        -80
+      ],
+      "id": "4b5d94b0-c3fb-4cfa-b57e-b0e706ddd1aa",
+      "name": "Check Duplicates",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a22f1fa1-dbe9-4cb4-9286-34174302064c",
+              "leftValue": "={{ $json.ID }}",
+              "rightValue": "={{ $('Extracting the data').item.json.query.Order_ID }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -16,
+        -80
+      ],
+      "id": "90068998-8b07-415e-ac32-f02f5a57b754",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5a519097-b8b6-4a3e-9b46-5ee8003b9532",
+              "name": "query.Name ",
+              "value": "={{ $json.query.Name }}",
+              "type": "string"
+            },
+            {
+              "id": "8258e761-d8ed-49d1-aace-765ace7abbe5",
+              "name": "query.Address",
+              "value": "={{ $json.query.Address }}",
+              "type": "string"
+            },
+            {
+              "id": "ca3c2cf9-1ac2-49b4-8e34-a8550b355ac0",
+              "name": "query.Order",
+              "value": "={{ $json.query.Order }}",
+              "type": "string"
+            },
+            {
+              "id": "43503fbd-2c20-42a0-bf77-11c6085c5a78",
+              "name": "query.Order_ID",
+              "value": "={{ $json.query.Order_ID }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -432,
+        -80
+      ],
+      "id": "39100416-5536-435a-aa27-b65dacf34924",
+      "name": "Extracting the data"
+    },
+    {
+      "parameters": {
+        "content": "## Order alert: new order → sheet + Telegram\nReceives an order, blocks duplicates, then logs it to Google Sheets and alerts the owner on Telegram.\n\n**Flow:** Webhook → Edit Fields → Check Duplicates → If → Log + Telegram\n\n**Key idea:** every order carries an `Order_ID`. The workflow looks that ID up in the sheet first. Found = stop. Not found = log it and send the alert.\n\n**Known limit:** two identical requests arriving at the exact same moment could both pass the check.",
+        "height": 280,
+        "width": 1190,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -768,
+        -752
+      ],
+      "id": "36ae0611-d71c-4b2e-b44b-37ceafb98592",
+      "name": "Sticky Note Overview"
+    },
+    {
+      "parameters": {
+        "content": "## 1 · Receive and clean\n**Webhook** takes a POST request. The order details arrive as query parameters: `Name`, `Address`, `Order`, `Order_ID`.\n\n**Edit Fields** keeps only those four and names them cleanly for the next nodes.",
+        "height": 440,
+        "width": 430,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -752,
+        -400
+      ],
+      "id": "6af8e55b-f8fc-4e79-8271-2ab42aa71fad",
+      "name": "Sticky Note Receive"
+    },
+    {
+      "parameters": {
+        "content": "## 2 · Check for duplicates\n**Check Duplicates** searches the sheet for this `Order_ID`. *Always Output Data* is on, so the flow still continues when nothing is found.\n\n**If** compares the sheet's ID with the incoming one:\n- Match (true): already logged, the flow stops.\n- No match (false): new order, continue.",
+        "height": 440,
+        "width": 400,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        -400
+      ],
+      "id": "3f5d8377-15aa-419c-8be5-99569ad1f0bf",
+      "name": "Sticky Note Duplicates"
+    },
+    {
+      "parameters": {
+        "content": "## 3 · Log and notify\nOnly new orders reach this stage.\n\n**Log Order Details to Sheets** adds the row (matched on ID).\n\n**Send Order Details to Telegram** messages the owner with name, address, order and ID.",
+        "height": 580,
+        "width": 300,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        128,
+        -432
+      ],
+      "id": "fa1d4ad4-b207-4cc2-9abb-bdefff2e6f1e",
+      "name": "Sticky Note Notify"
+    },
+    {
+      "parameters": {
+        "content": "## Test it\nSend the same request twice, then once with a new ID:\n\n`POST <webhook URL>?Name=Dina&Address=Giza&Order=Mizuno 44&Order_ID=1001`\n\n**Expected:** 1 message + 1 row for 1001, nothing new on the repeat, then a new message + row for 1002.",
+        "height": 200,
+        "width": 1190,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -768,
+        192
+      ],
+      "id": "cc8ad4c9-91b8-4b28-9ebc-874be7f204c1",
+      "name": "Sticky Note Test"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extracting the data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Send Order Details to Telegram": {
+      "main": [
+        []
+      ]
+    },
+    "Check Duplicates": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Log Order Details to Sheets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Order Details to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extracting the data": {
+      "main": [
+        [
+          {
+            "node": "Check Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  }
+}
